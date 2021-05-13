@@ -29,8 +29,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'notification.dart';
+import 'notifications.dart';
 
 void main() {
   runApp(MyApp());
@@ -62,12 +61,17 @@ class _MyHomePageState extends State<MyHomePage> {
   String label="";
   String previousSchedule="";
   String currentSchedule="";
+  Notifications myNotifications = Notifications();
+  String monitoringUrl="https://www.ledaks.ru/"; //("http://192.168.1.71/!fs_planner_test/"));
 
   void initState(){
     super.initState();
-    setState(() {
-      label="ПЫЩ!";
-    });
+    myNotifications.initNotifications();
+    load();
+
+    // setState(() {
+    //   label="ПЫЩ!";
+    // });
   }
 
   void load() async{
@@ -76,28 +80,36 @@ class _MyHomePageState extends State<MyHomePage> {
       print("Yeah, this line is printed after 3 seconds");
     });
  */
-    Timer.periodic(Duration(seconds: 5*1), (timer) async{
+    int x=5*60;
+    setState(() {
+      message="Привет, Мышь!\nНачинаю следить за расписанием\n" +monitoringUrl+"\nв "+DateTime.now().toString()+"\nкаждые "+x.toString()+" секунд.";
+      label=message;
+    });
+
+    Timer.periodic(Duration(seconds: x), (timer) async{
       previousSchedule=currentSchedule;
       currentSchedule= await loadSchedule();
       setState(() {
+        if (currentSchedule=="") {
+        } else
         if (currentSchedule==previousSchedule) {
-          message="_Расписание не изменилось!";
+          //message="Расписание не изменилось!";
         } else
         {
-          message="Расписание ИЗМЕНИЛОСЬ!";
+          message="Расписание ИЗМЕНИЛОСЬ\n"+DateTime.now().toString()+"!\n"+message;
+          myNotifications.pushNotification();
         }
-        label=message+"\n"+currentSchedule;
-        MyNotification MyNotification1 = new MyNotification();
-        MyNotification1.notify();
-
+        label=message;//+currentSchedule;
       });
-      print(message + " " + DateTime.now().toString());
+      //print(message + " " + DateTime.now().toString());
+
     });
+
 
   }
 
   Future<String> loadSchedule() async{
-    var response = await http.get(Uri.parse("https://www.ledaks.ru/"));
+    var response = await http.get(Uri.parse(monitoringUrl));
 
     //List<Person> results = [];
 
@@ -114,9 +126,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void pressButton(){
     setState(() {
-      label+="+";
+      label+="Мррр!\n";
     });
-    load();
+//    load();
   }
 
   @override
@@ -145,9 +157,6 @@ class _MyHomePageState extends State<MyHomePage> {
           // horizontal).
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
-            ),
             Text(label,
                 style: Theme.of(context).textTheme.headline4,
             ),
