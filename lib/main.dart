@@ -26,7 +26,8 @@ MVP3
 MVP4
  */
 import 'dart:async';
-
+import 'dart:isolate';
+import 'package:android_alarm_manager/android_alarm_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'notifications.dart';
@@ -59,34 +60,45 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   String label="";
+  String message="";
   String previousSchedule="";
   String currentSchedule="";
   Notifications myNotifications = Notifications();
   String monitoringUrl="https://www.ledaks.ru/"; //("http://192.168.1.71/!fs_planner_test/"));
 
+  void printHello() {
+    final DateTime now = DateTime.now();
+    final int isolateId = Isolate.current.hashCode;
+    print("[$now] Hello, world! isolate=${isolateId} function='$printHello'");
+  }
+
+
+
   void initState(){
     super.initState();
     myNotifications.initNotifications();
-    load();
-
-    // setState(() {
-    //   label="ПЫЩ!";
-    // });
-  }
-
-  void load() async{
-    String message="";
-/*    Timer(Duration(seconds: 3), () {
-      print("Yeah, this line is printed after 3 seconds");
-    });
- */
-    int x=5*60;
+    int x=5*1;
     setState(() {
       message="Привет, Мышь!\nНачинаю следить за расписанием\n" +monitoringUrl+"\nв "+DateTime.now().toString()+"\nкаждые "+x.toString()+" секунд.";
       label=message;
     });
 
-    Timer.periodic(Duration(seconds: x), (timer) async{
+    loadLoop();
+    /* Timer.periodic(Duration(seconds: x), (timer) async{
+      load();
+    }); */
+  }
+
+  void loadLoop() async{
+    final int helloAlarmID = 0;
+    await AndroidAlarmManager.initialize();
+    await AndroidAlarmManager.periodic(const Duration(seconds: 5), helloAlarmID, printHello);
+  }
+
+  void load() async{
+/*    Timer(Duration(seconds: 3), () {
+      print("Yeah, this line is printed after 3 seconds");
+    }); */
       previousSchedule=currentSchedule;
       currentSchedule= await loadSchedule();
       setState(() {
@@ -102,10 +114,6 @@ class _MyHomePageState extends State<MyHomePage> {
         label=message;//+currentSchedule;
       });
       //print(message + " " + DateTime.now().toString());
-
-    });
-
-
   }
 
   Future<String> loadSchedule() async{
@@ -127,6 +135,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void pressButton(){
     setState(() {
       label+="Мррр!\n";
+      loadLoop();
     });
 //    load();
   }

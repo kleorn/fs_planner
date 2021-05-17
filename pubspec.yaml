@@ -21,6 +21,7 @@ environment:
   sdk: ">=2.7.0 <3.0.0"
 
 dependencies:
+  android_alarm_manager: ^2.0.0
   http: ^0.13.3
   flutter:
     sdk: flutter
