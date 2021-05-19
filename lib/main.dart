@@ -26,13 +26,15 @@ MVP3
 MVP4
  */
 import 'dart:async';
-import 'dart:isolate';
 import 'package:android_alarm_manager/android_alarm_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'notifications.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized(); //flutter alarm manager
+  await AndroidAlarmManager.initialize(); //flutter alarm manager
+
   runApp(MyApp());
 }
 
@@ -66,14 +68,6 @@ class _MyHomePageState extends State<MyHomePage> {
   Notifications myNotifications = Notifications();
   String monitoringUrl="https://www.ledaks.ru/"; //("http://192.168.1.71/!fs_planner_test/"));
 
-  void printHello() {
-    final DateTime now = DateTime.now();
-    final int isolateId = Isolate.current.hashCode;
-    print("[$now] Hello, world! isolate=${isolateId} function='$printHello'");
-  }
-
-
-
   void initState(){
     super.initState();
     myNotifications.initNotifications();
@@ -82,7 +76,6 @@ class _MyHomePageState extends State<MyHomePage> {
       message="Привет, Мышь!\nНачинаю следить за расписанием\n" +monitoringUrl+"\nв "+DateTime.now().toString()+"\nкаждые "+x.toString()+" секунд.";
       label=message;
     });
-
     loadLoop();
     /* Timer.periodic(Duration(seconds: x), (timer) async{
       load();
@@ -90,9 +83,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void loadLoop() async{
-    final int helloAlarmID = 0;
-    await AndroidAlarmManager.initialize();
-    await AndroidAlarmManager.periodic(const Duration(seconds: 5), helloAlarmID, printHello);
+
   }
 
   void load() async{
@@ -109,61 +100,44 @@ class _MyHomePageState extends State<MyHomePage> {
         } else
         {
           message="Расписание ИЗМЕНИЛОСЬ\n"+DateTime.now().toString()+"!\n"+message;
-          myNotifications.pushNotification();
         }
         label=message;//+currentSchedule;
+
+        //Пока во всех случаях!
+        //showprint();
+        AndroidAlarmManager.oneShot(Duration(seconds: 5), 0, showprint);//myNotifications.pushNotification);
       });
       //print(message + " " + DateTime.now().toString());
+  }
+
+  showprint() {
+    print('alarm done');
   }
 
   Future<String> loadSchedule() async{
     var response = await http.get(Uri.parse(monitoringUrl));
 
-    //List<Person> results = [];
-
     if(response.statusCode==200) {
       return response.body;
-/*      List<dynamic> resultsList = convert.jsonDecode(response.body)["results"];
-      for (var result in resultsList) {
-        Person person = Person ();
-        person.id= result["id"];
-        results.add(person);
- */
       } else return response.statusCode.toString();
   }
 
   void pressButton(){
     setState(() {
       label+="Мррр!\n";
-      loadLoop();
+      //loadLoop();
     });
-//    load();
+    load();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
       body: Center(
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(label,
