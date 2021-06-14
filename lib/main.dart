@@ -31,11 +31,19 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'notifications.dart';
 
+Notifications myNotifications = Notifications();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); //flutter alarm manager
   await AndroidAlarmManager.initialize(); //flutter alarm manager
 
   runApp(MyApp());
+}
+
+showprint() {
+  myNotifications.pushNotification();
+  print('alarm done');
+  AndroidAlarmManager.oneShot(Duration(seconds: 5), 0, showprint);
 }
 
 class MyApp extends StatelessWidget {
@@ -65,7 +73,6 @@ class _MyHomePageState extends State<MyHomePage> {
   String message="";
   String previousSchedule="";
   String currentSchedule="";
-  Notifications myNotifications = Notifications();
   String monitoringUrl="https://www.ledaks.ru/"; //("http://192.168.1.71/!fs_planner_test/"));
 
   void initState(){
@@ -87,9 +94,6 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void load() async{
-/*    Timer(Duration(seconds: 3), () {
-      print("Yeah, this line is printed after 3 seconds");
-    }); */
       previousSchedule=currentSchedule;
       currentSchedule= await loadSchedule();
       setState(() {
@@ -104,14 +108,9 @@ class _MyHomePageState extends State<MyHomePage> {
         label=message;//+currentSchedule;
 
         //Пока во всех случаях!
-        //showprint();
-        AndroidAlarmManager.oneShot(Duration(seconds: 5), 0, showprint);//myNotifications.pushNotification);
+        showprint();
       });
       //print(message + " " + DateTime.now().toString());
-  }
-
-  showprint() {
-    print('alarm done');
   }
 
   Future<String> loadSchedule() async{
@@ -127,6 +126,10 @@ class _MyHomePageState extends State<MyHomePage> {
       label+="Мррр!\n";
       //loadLoop();
     });
+
+    //тестируем уведомления
+    //myNotifications.pushNotification();
+
     load();
   }
 

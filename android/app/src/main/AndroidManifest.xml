@@ -5,7 +5,8 @@
     <uses-permission android:name="android.permission.VIBRATE" />
    <application
         android:label="fs_planner"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+       android:usesCleartextTraffic="true">
 
        <service
            android:name="io.flutter.plugins.androidalarmmanager.AlarmService"
